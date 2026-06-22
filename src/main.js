@@ -5,6 +5,7 @@
 import './style.css'
 import { createHome } from './home.js'
 import { createMenu } from './menu.js'
+import { createAbout } from './about.js' 
 
 /* ==========================================================================
    GLOBAL APP INITIALIZATION
@@ -43,6 +44,10 @@ const createContentContainer = () => {
   return content
 }
 
+/* ==========================================================================
+   NAVIGATION HEADER
+   ========================================================================== */
+
 /**
  * Creates the navigation header with tab buttons.
  * @function createHeader
@@ -74,7 +79,6 @@ const createHeader = () => {
 
 /**
  * Renders the base application shell (header + content container).
- * This defines the static layout structure of the app.
  * @function renderShell
  * @returns {void}
  */
@@ -86,6 +90,36 @@ const renderShell = () => {
 
   app.appendChild(header)
   app.appendChild(content)
+}
+
+/* ==========================================================================
+   ROUTER 
+   ========================================================================== */
+
+/**
+ * Handles navigation between pages.
+ * @function router
+ * @param {string} tab
+ * @returns {void}
+ */
+const router = (tab) => {
+  switch (tab) {
+    case 'home':
+      renderHome()
+      break
+
+    case 'menu':
+      renderMenu()
+      break
+
+    case 'about':
+      // [x] TODO: About page not implemented yet
+      renderAbout()
+      break
+
+    default:
+      renderHome()
+  }
 }
 
 /* ==========================================================================
@@ -125,6 +159,37 @@ const renderMenu = () => {
   const content = document.querySelector('#content')
   content.appendChild(createMenu())
 }
+/**
+ * Renders the About page module.
+ * @function renderAbout
+ * @returns {void}
+ */
+const renderAbout = () => {
+  clearContent()
+
+  const content = document.querySelector('#content')
+  content.appendChild(createAbout())
+}
+
+/* ==========================================================================
+   EVENT HANDLING 
+   ========================================================================== */
+
+/**
+ * Handles navigation clicks using event delegation.
+ * @function handleNavigation
+ * @param {MouseEvent} event
+ * @returns {void}
+ */
+const handleNavigation = (event) => {
+  const button = event.target.closest('button')
+  if (!button) return
+
+  const tab = button.dataset.tab
+  if (!tab) return
+
+  router(tab)
+}
 
 /* ==========================================================================
    INITIALIZATION
@@ -146,13 +211,7 @@ const init = () => {
 
   const header = document.querySelector('header')
 
-  header.addEventListener('click', (e) => {
-    const btn = e.target.closest('button')
-    if (!btn) return
-
-    if (btn.dataset.tab === 'home') renderHome()
-    if (btn.dataset.tab === 'menu') renderMenu()
-  })
+  header.addEventListener('click', handleNavigation)
 }
 
 init()
