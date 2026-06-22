@@ -1,4 +1,5 @@
 import './style.css'
+import { createHome } from './home.js'
 
 console.log("Restaurant Page starting...")
 
@@ -85,3 +86,12 @@ const renderShell = () => {
 
 // TODO: Later replace with module-based Home renderer
 renderShell()
+
+const content = document.querySelector('#content')
+
+if (!content) {
+  throw new Error("Missing #content container")
+}
+
+// render Home module into the page
+content.appendChild(createHome())
