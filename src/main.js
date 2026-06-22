@@ -1,27 +1,31 @@
-import './style.css'
-import { createHome } from './home.js'
-
-console.log("Restaurant Page starting...")
-
 /* ==========================================================================
-    GLOBAL APP INITIALIZATION
+   IMPORTS
    ========================================================================== */
 
-// TODO: Ensure #app exists before rendering shell
+import './style.css'
+import { createHome } from './home.js'
+import { createMenu } from './menu.js'
+
+/* ==========================================================================
+   GLOBAL APP INITIALIZATION
+   ========================================================================== */
+
+/** @type {HTMLElement} Root application container */
 const app = document.querySelector('#app')
 
 if (!app) {
-  throw new Error("Root #app element not found")
+  throw new Error('Root #app element not found')
 }
 
 /* ==========================================================================
-    RENDER ROOT STRUCTURE
+   APPLICATION SHELL
    ========================================================================== */
 
 /**
- * Clears the root application container.
- * Ensures a clean slate before rendering UI shell.
+ * Clears all content inside the app root.
+ * Used before rendering a new UI shell.
  * @function clearApp
+ * @returns {void}
  */
 const clearApp = () => {
   app.textContent = ''
@@ -29,6 +33,8 @@ const clearApp = () => {
 
 /**
  * Creates the main content container (#content).
+ * Acts as mount point for page modules.
+ * @function createContentContainer
  * @returns {HTMLDivElement}
  */
 const createContentContainer = () => {
@@ -39,6 +45,7 @@ const createContentContainer = () => {
 
 /**
  * Creates the navigation header with tab buttons.
+ * @function createHeader
  * @returns {HTMLElement}
  */
 const createHeader = () => {
@@ -62,13 +69,14 @@ const createHeader = () => {
   nav.appendChild(aboutBtn)
 
   header.appendChild(nav)
-
   return header
 }
 
 /**
  * Renders the base application shell (header + content container).
+ * This defines the static layout structure of the app.
  * @function renderShell
+ * @returns {void}
  */
 const renderShell = () => {
   clearApp()
@@ -81,17 +89,70 @@ const renderShell = () => {
 }
 
 /* ==========================================================================
-    INITIALIZATION
+   RENDER FUNCTIONS
    ========================================================================== */
 
-// TODO: Later replace with module-based Home renderer
-renderShell()
-
-const content = document.querySelector('#content')
-
-if (!content) {
-  throw new Error("Missing #content container")
+/**
+ * Clears the content container.
+ * @function clearContent
+ * @returns {void}
+ */
+const clearContent = () => {
+  const content = document.querySelector('#content')
+  content.textContent = ''
 }
 
-// render Home module into the page
-content.appendChild(createHome())
+/**
+ * Renders the Home page module.
+ * @function renderHome
+ * @returns {void}
+ */
+const renderHome = () => {
+  clearContent()
+
+  const content = document.querySelector('#content')
+  content.appendChild(createHome())
+}
+
+/**
+ * Renders the Menu page module.
+ * @function renderMenu
+ * @returns {void}
+ */
+const renderMenu = () => {
+  clearContent()
+
+  const content = document.querySelector('#content')
+  content.appendChild(createMenu())
+}
+
+/* ==========================================================================
+   INITIALIZATION
+   ========================================================================== */
+
+/**
+ * Initializes application:
+ * - builds shell
+ * - renders default page
+ * - attaches event listeners
+ * @function init
+ * @returns {void}
+ */
+const init = () => {
+  renderShell()
+
+  // default page load
+  renderHome()
+
+  const header = document.querySelector('header')
+
+  header.addEventListener('click', (e) => {
+    const btn = e.target.closest('button')
+    if (!btn) return
+
+    if (btn.dataset.tab === 'home') renderHome()
+    if (btn.dataset.tab === 'menu') renderMenu()
+  })
+}
+
+init()
