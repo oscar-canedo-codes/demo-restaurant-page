@@ -3,9 +3,10 @@
    ========================================================================== */
 
 import './style.css'
-import { createHome } from './home.js'
-import { createMenu } from './menu.js'
-import { createAbout } from './about.js' 
+import { createHome } from './modules/home.js'
+import { createMenu } from './modules/menu.js'
+import { createAbout } from './modules/about.js' 
+import { router } from './router/router.js'
 
 /* ==========================================================================
    GLOBAL APP INITIALIZATION
@@ -93,38 +94,11 @@ const renderShell = () => {
 }
 
 /* ==========================================================================
-   ROUTER 
-   ========================================================================== */
-
-/**
- * Handles navigation between pages.
- * @function router
- * @param {string} tab
- * @returns {void}
- */
-const router = (tab) => {
-  switch (tab) {
-    case 'home':
-      renderHome()
-      break
-
-    case 'menu':
-      renderMenu()
-      break
-
-    case 'about':
-      // [x] TODO: About page not implemented yet
-      renderAbout()
-      break
-
-    default:
-      renderHome()
-  }
-}
-
-/* ==========================================================================
    RENDER FUNCTIONS
    ========================================================================== */
+// [x] TODO: Centralize page mounting logic
+// [ ] TODO: Standardize render pipeline across all modules
+// [ ] TODO: Add render safety guards for invalid modules
 
 /**
  * Clears the content container.
@@ -137,15 +111,31 @@ const clearContent = () => {
 }
 
 /**
+ * Renders a page module into the content container.
+ * Centralizes DOM clearing and mounting behavior.
+ * @function renderPage
+ * @param {Function} pageFactory
+ * @returns {void}
+ */
+const renderPage = (pageFactory) => {
+  clearContent()
+
+  const content = document.querySelector('#content')
+
+  if (!content) {
+    throw new Error('Content container not found')
+  }
+
+  content.appendChild(pageFactory())
+}
+
+/**
  * Renders the Home page module.
  * @function renderHome
  * @returns {void}
  */
 const renderHome = () => {
-  clearContent()
-
-  const content = document.querySelector('#content')
-  content.appendChild(createHome())
+  renderPage(createHome)
 }
 
 /**
@@ -154,22 +144,19 @@ const renderHome = () => {
  * @returns {void}
  */
 const renderMenu = () => {
-  clearContent()
-
-  const content = document.querySelector('#content')
-  content.appendChild(createMenu())
+  renderPage(createMenu)
 }
+
 /**
  * Renders the About page module.
  * @function renderAbout
  * @returns {void}
  */
 const renderAbout = () => {
-  clearContent()
-
-  const content = document.querySelector('#content')
-  content.appendChild(createAbout())
+  renderPage(createAbout)
 }
+
+
 
 /* ==========================================================================
    EVENT HANDLING 
@@ -188,7 +175,11 @@ const handleNavigation = (event) => {
   const tab = button.dataset.tab
   if (!tab) return
 
-  router(tab)
+  router(tab, {
+    home: renderHome,
+    menu: renderMenu,
+    about: renderAbout
+  })
 }
 
 /* ==========================================================================
@@ -205,9 +196,6 @@ const handleNavigation = (event) => {
  */
 const init = () => {
   renderShell()
-
-  // default page load
-  renderHome()
 
   const header = document.querySelector('header')
 
