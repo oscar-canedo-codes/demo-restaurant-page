@@ -9,16 +9,22 @@ const DEBUG = true
    ========================================================================== */
 
 import './style.css'
-import { createHome } from './modules/home.js'
-import { createMenu } from './modules/menu.js'
-import { createAbout } from './modules/about.js' 
-import { router } from './router/router.js'
+import { createHome } from './pages/home.js'
+import { createMenu } from './pages/menu.js'
+import { createAbout } from './pages/about.js'
+
+import { renderShell } from './app/shell.js'
+import { initNavigation } from './app/navigation.js'
+import { router } from './router/index.js'
 
 /* ==========================================================================
    GLOBAL APP INITIALIZATION
    ========================================================================== */
 
-/** @type {HTMLElement} Root application container */
+/**
+ * Root application container.
+ * @type {HTMLElement}
+ */
 const app = document.querySelector('#app')
 
 if (!app) {
@@ -26,168 +32,92 @@ if (!app) {
 }
 
 /* ==========================================================================
-   APPLICATION SHELL
+   RENDER ENGINE
    ========================================================================== */
 
 /**
- * Clears all content inside the app root.
- * Used before rendering a new UI shell.
- * @function clearApp
- * @returns {void}
- */
-const clearApp = () => {
-  app.textContent = ''
-}
-
-/**
- * Creates the main content container (#content).
- * Acts as mount point for page modules.
- * @function createContentContainer
- * @returns {HTMLDivElement}
- */
-const createContentContainer = () => {
-  const content = document.createElement('div')
-  content.id = 'content'
-  return content
-}
-
-/* ==========================================================================
-   NAVIGATION HEADER
-   ========================================================================== */
-
-/**
- * Creates the navigation header with tab buttons.
- * @function createHeader
- * @returns {HTMLElement}
- */
-const createHeader = () => {
-  const header = document.createElement('header')
-  const nav = document.createElement('nav')
-
-  const homeBtn = document.createElement('button')
-  homeBtn.textContent = 'Home'
-  homeBtn.dataset.tab = 'home'
-
-  const menuBtn = document.createElement('button')
-  menuBtn.textContent = 'Menu'
-  menuBtn.dataset.tab = 'menu'
-
-  const aboutBtn = document.createElement('button')
-  aboutBtn.textContent = 'About'
-  aboutBtn.dataset.tab = 'about'
-
-  nav.appendChild(homeBtn)
-  nav.appendChild(menuBtn)
-  nav.appendChild(aboutBtn)
-
-  header.appendChild(nav)
-  return header
-}
-
-/**
- * Renders the base application shell (header + content container).
- * @function renderShell
- * @returns {void}
- */
-const renderShell = () => {
-  clearApp()
-
-  const header = createHeader()
-  const content = createContentContainer()
-
-  app.appendChild(header)
-  app.appendChild(content)
-}
-
-/* ==========================================================================
-   RENDER FUNCTIONS
-   ========================================================================== */
-// [x] TODO: Centralize page mounting logic
-// [ ] TODO: Standardize render pipeline across all modules
-// [ ] TODO: Add render safety guards for invalid modules
-
-/**
- * Clears the content container.
- * @function clearContent
- * @returns {void}
- */
-const clearContent = () => {
-  const content = document.querySelector('#content')
-  content.textContent = ''
-}
-
-/**
- * Renders a page module into the content container.
- * Centralizes DOM clearing and mounting behavior.
+ * Renders a page into the #content container.
+ * This is the single rendering abstraction for all views.
+ *
  * @function renderPage
  * @param {Function} pageFactory
  * @returns {void}
  */
 const renderPage = (pageFactory) => {
-  clearContent()
-
   const content = document.querySelector('#content')
 
   if (!content) {
     throw new Error('Content container not found')
   }
 
+  content.textContent = ''
   content.appendChild(pageFactory())
 }
 
-/**
- * Renders the Home page module.
- * @function renderHome
- * @returns {void}
- */
-const renderHome = () => {
-  renderPage(createHome)
-}
-
-/**
- * Renders the Menu page module.
- * @function renderMenu
- * @returns {void}
- */
-const renderMenu = () => {
-  renderPage(createMenu)
-}
-
-/**
- * Renders the About page module.
- * @function renderAbout
- * @returns {void}
- */
-const renderAbout = () => {
-  renderPage(createAbout)
-}
-
-
-
 /* ==========================================================================
-   EVENT HANDLING 
+   PAGE RENDER FUNCTIONS
    ========================================================================== */
 
 /**
- * Handles navigation clicks using event delegation.
- * @function handleNavigation
- * @param {MouseEvent} event
+ * Renders Home page.
+ * @function renderHome
  * @returns {void}
  */
-const handleNavigation = (event) => {
-  const button = event.target.closest('button')
-  if (!button) return
+export const renderHome = () => renderPage(createHome)
 
-  const tab = button.dataset.tab
-  if (!tab) return
+/**
+ * Renders Menu page.
+ * @function renderMenu
+ * @returns {void}
+ */
+export const renderMenu = () => renderPage(createMenu)
 
-    logDebug(`Navigating to: ${tab}`)
-    
-  router(tab, {
-    home: renderHome,
-    menu: renderMenu,
-    about: renderAbout
-  })
+/**
+ * Renders About page.
+ * @function renderAbout
+ * @returns {void}
+ */
+export const renderAbout = () => renderPage(createAbout)
+
+/* ==========================================================================
+   ROUTES
+   ========================================================================== */
+
+/**
+ * Route-to-render mapping table.
+ * Maps router output to actual page render functions.
+ *
+ * @type {Object.<string, Function>}
+ */
+const routes = {
+  home: renderHome,
+  menu: renderMenu,
+  about: renderAbout
+}
+
+/**
+ * Handles route changes from navigation.
+ *
+ * Flow:
+ * 1. Receive clicked tab
+ * 2. Resolve route via router
+ * 3. Lookup page in routes map
+ * 4. Execute render function
+ *
+ * @function handleRouteChange
+ * @param {string} clickedTab
+ * @returns {void}
+ */
+const handleRouteChange = (clickedTab) => {
+  const route = router(clickedTab)
+
+  const page = routes[route]
+
+  if (!page) {
+    throw new Error(`No page found for route: ${route}`)
+  }
+
+  page()
 }
 
 /* ==========================================================================
@@ -195,31 +125,20 @@ const handleNavigation = (event) => {
    ========================================================================== */
 
 /**
- * Initializes application:
- * - builds shell
- * - renders default page
- * - attaches event listeners
+ * Application bootstrap sequence.
+ * - mounts shell layout
+ * - renders initial page
+ * - initializes navigation system
+ *
  * @function init
  * @returns {void}
  */
 const init = () => {
-  renderShell()
+  renderShell(app)
 
-  const header = document.querySelector('header')
+  renderHome()
 
-  header.addEventListener('click', handleNavigation)
+  initNavigation(handleRouteChange)
 }
 
 init()
-
-/**
- * Centralized debug logger
- * @function logDebug
- * @param {string} message
- * @returns {void}
- */
-const logDebug = (message) => {
-  if (DEBUG) {
-    console.log(`[DEBUG]: ${message}`)
-  }
-}
