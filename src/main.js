@@ -1,3 +1,9 @@
+/**
+ * Debug mode toggle
+ * @type {boolean}
+ */
+const DEBUG = true
+
 /* ==========================================================================
    IMPORTS
    ========================================================================== */
@@ -175,6 +181,8 @@ const handleNavigation = (event) => {
   const tab = button.dataset.tab
   if (!tab) return
 
+    logDebug(`Navigating to: ${tab}`)
+    
   router(tab, {
     home: renderHome,
     menu: renderMenu,
@@ -203,3 +211,15 @@ const init = () => {
 }
 
 init()
+
+/**
+ * Centralized debug logger
+ * @function logDebug
+ * @param {string} message
+ * @returns {void}
+ */
+const logDebug = (message) => {
+  if (DEBUG) {
+    console.log(`[DEBUG]: ${message}`)
+  }
+}
