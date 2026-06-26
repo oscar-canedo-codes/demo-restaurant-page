@@ -1,3 +1,10 @@
+/**
+ * Creates and returns the menu page element.
+ * Generates a container with a title and a list of menu items including descriptions and prices.
+ * 
+ * @returns {HTMLDivElement} The container element containing the menu page content.
+ */
+
 export const createMenu = () => {
   const container = document.createElement('div')
   container.classList.add('menu')

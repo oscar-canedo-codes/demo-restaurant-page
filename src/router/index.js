@@ -1,5 +1,4 @@
-import { renderHome, renderMenu, renderAbout } from '../main.js'
-
+import { renderHome, renderMenu, renderAbout } from '../app/routes.js'
 /**
  * Application router.
  * Responsible for mapping routes to page renderers.

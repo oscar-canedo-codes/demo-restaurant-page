@@ -1,4 +1,5 @@
 import { router } from '../router/index.js'
+
 /**
  * Handles navigation clicks using event delegation.
  * @function handleNavigation
@@ -12,7 +13,6 @@ export const handleNavigation = (event) => {
   const tab = button.dataset.tab
   if (!tab) return
 
-    logDebug(`Navigating to: ${tab}`)
   router(tab, {
     home: renderHome,
     menu: renderMenu,
